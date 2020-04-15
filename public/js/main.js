@@ -379,6 +379,11 @@ $(document).ready(function () {
         })
     });
 
+    // add page
+    $("#addPageBtn").click(function () {
+        whiteboard.addPage();
+    });
+
     // upload json containing steps
     $("#uploadJsonBtn").click(function () {
         $("#myFile").click();

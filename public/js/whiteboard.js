@@ -1,5 +1,6 @@
 var whiteboard = {
     isMultiTouch: false,
+    pages: 1,
     canvas: null,
     ctx: null,
     drawcolor: "black",
@@ -70,15 +71,15 @@ var whiteboard = {
             .append(_this.textContainer)
             .append(_this.mouseOverlay);
         this.canvas = $("#whiteboardCanvas")[0];
-        this.canvas.height = $(window).height();
         this.canvas.width = $(window).width();
+        this.canvas.height = $(window).height() * pages;
         this.ctx = this.canvas.getContext("2d");
         this.oldGCO = this.ctx.globalCompositeOperation;
 
         $(window).resize(function () { //Handle resize
             var dbCp = JSON.parse(JSON.stringify(_this.drawBuffer)); //Copy the buffer
             _this.canvas.width = $(window).width();
-            _this.canvas.height = $(window).height(); //Set new canvas height
+            _this.canvas.height = $(window).height() * pages; //Set new canvas height
             _this.drawBuffer = [];
             _this.loadData(dbCp); //draw old content in
         });
@@ -621,6 +622,10 @@ var whiteboard = {
         _this.sendFunction({ "t": "clear" });
         _this.drawBuffer = [];
         _this.drawId = 0;
+    },
+    addPage: function () {
+        pages += 1;
+
     },
     setStrokeThickness(thickness) {
         var _this = this;
