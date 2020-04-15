@@ -87,6 +87,10 @@ var whiteboard = {
                 return;
             }
 
+            if(e.touches.length > 1) {
+                return; // if more than one fingers are touching the screen, dont draw
+            }
+
             _this.drawFlag = true;
             _this.prevX = (e.offsetX || e.pageX - $(e.target).offset().left) + 1;
             _this.prevY = (e.offsetY || e.pageY - $(e.target).offset().top) + 1;
