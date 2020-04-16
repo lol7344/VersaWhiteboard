@@ -56,6 +56,11 @@ signaling_socket.on('connect', function () {
         whiteboard.updateSmallestScreenResolution(widthHeight["w"], widthHeight["h"]);
     });
 
+    signaling_socket.on('updateBiggestScreenResolution', function (widthHeight) {
+        //whiteboard.updateSmallestScreenResolution(widthHeight["w"], widthHeight["h"]);
+        // todo: implement biggest resolution check & update
+    });
+
     signaling_socket.emit('joinWhiteboard', { wid: whiteboardId, at: accessToken, windowWidthHeight: { w: $(window).width(), h: $(window).height() } });
 });
 
