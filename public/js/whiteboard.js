@@ -214,7 +214,6 @@ var whiteboard = {
                 return;
             }
 
-            //console.info("eoff: " + e.offsetY); console.info("else:" + (e.pageY - $(e.target).offset().top));
             _this.sendFunction({
                 "t": "cursor",
                 "event": "move",
@@ -250,8 +249,6 @@ var whiteboard = {
             _this.ctx.globalCompositeOperation = _this.oldGCO;
             var currX = (loc.offsetX || loc.pageX - $(e.target).offset().left);
             var currY = (loc.offsetY || loc.pageY - $(e.target).offset().top);
-            var els = loc.pageY - $(e.target).offset().top;
-            console.info("eoff: " + loc.offsetY); console.info("else: " + els);
             if (!currX || !currY) {
                 currX = _this.latestTouchCoods[0];
                 currY = _this.latestTouchCoods[1];
@@ -430,19 +427,7 @@ var whiteboard = {
         var currX = loc.offsetX || loc.pageX - $(e.target).offset().left;
         var currY = loc.offsetY || loc.pageY - $(e.target).offset().top;
 
-        /*console.log("curr y:" + loc.currY);
-        console.log("offset y:" + loc.offsetY);
-        console.log("page y:" + loc.pageY);
-
-        console.log("current y: " + currY);*/
-
         window.requestAnimationFrame(function () {
-            if ((!currX || !currY) && e.touches && e.touches[0]) {
-                var touche = e.touches[0];
-                currX = touche.clientX - $(_this.mouseOverlay).offset().left;
-                currY = touche.clientY - $(_this.mouseOverlay).offset().top;
-                //console.log("current y new: " + currY);
-            }
             _this.latestTouchCoods = [currX, currY];
 
             if (_this.drawFlag) {
