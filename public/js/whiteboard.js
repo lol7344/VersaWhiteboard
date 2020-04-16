@@ -1,6 +1,9 @@
+let biggestWidth = 1920;
+let biggestHeight = 10000;
+let pages = 1;
+
 var whiteboard = {
     isMultiTouch: false,
-    pages: 1,
     canvas: null,
     ctx: null,
     drawcolor: "black",
@@ -45,22 +48,49 @@ var whiteboard = {
         this.settings["username"] = this.settings["username"].replace(/[^0-9a-z]/gi, '');
         this.settings["whiteboardId"] = this.settings["whiteboardId"].replace(/[^0-9a-z]/gi, '');
 
+        var width = biggestWidth;
+        var height = biggestHeight;
+
+        /*var width = $(window).width();
+        if(width > biggestWidth)
+        {
+            biggestWidth = width;
+        }
+        else
+        {
+            width = biggestWidth;
+        }
+
+        var height = $(window).height();
+        console.info("height: " + height);
+        if(height > biggestHeight)
+        {
+            biggestHeight = height;
+        }
+        else
+        {
+            height = biggestHeight;
+        }*/
+
+        //console.info("height new: " + height);
+
+        //_this.sendFunction({ "t": "refreshEveryoneScreenSize" });
         //background grid (repeating image) and smallest screen indication
-        _this.backgroundGrid = $('<div style="position: absolute; left:0px; top:0; opacity: 0.2; background-image:url(\'' + _this.settings["backgroundGridUrl"] + '\'); height: 100%; width: 100%;"></div>');
+        _this.backgroundGrid = $('<div style="position: absolute; left:0px; top:0; opacity: 0.2; background-image:url(\'' + _this.settings["backgroundGridUrl"] + '\'); height: ' + height + 'px; width: ' + width + 'px;"></div>');
         // container for background images
-        _this.imgContainer = $('<div style="position: absolute; left:0px; top:0; height: 100%; width: 100%;"></div>');
+        _this.imgContainer = $('<div style="position: absolute; left:0px; top:0; height: ' + height + 'px; width: ' + width + 'px;"></div>');
         // whiteboard canvas
         _this.canvasElement = $('<canvas id="whiteboardCanvas" style="position: absolute; left:0px; top:0; cursor:crosshair;"></canvas>');
         // SVG container holding drawing or moving previews
-        _this.svgContainer = $('<svg style="position: absolute; top:0px; left:0px;" width="100%" height="100%"></svg>');
+        _this.svgContainer = $('<svg style="position: absolute; top: 0px; left:0px; width:' + width + 'px; height: ' + height + 'px;"></svg>');
         // drag and drop indicator, hidden by default
-        _this.dropIndicator = $('<div style="position:absolute; height: 100%; width: 100%; border: 7px dashed gray; text-align: center; top: 0px; left: 0px; color: gray; font-size: 23em; display: none;"><i class="far fa-plus-square" aria-hidden="true"></i></div>')
+        _this.dropIndicator = $('<div style="position:absolute; height: ' + height + 'px; width: ' + width + 'px; border: 7px dashed gray; text-align: center; top: 0px; left: 0px; color: gray; font-size: 23em; display: none;"><i class="far fa-plus-square" aria-hidden="true"></i></div>')
         // container for other users cursors
-        _this.cursorContainer = $('<div style="position: absolute; left:0px; top:0; height: 100%; width: 100%;"></div>');
+        _this.cursorContainer = $('<div style="position: absolute; left:0px; top:0; height: ' + height + 'px; width: ' + width + 'px;"></div>');
         // container for texts by users
-        _this.textContainer = $('<div class="textcontainer" style="position: absolute; left:0px; top:0; height: 100%; width: 100%; cursor:text;"></div>');
+        _this.textContainer = $('<div class="textcontainer" style="position: absolute; left:0px; top:0; height: ' + height + 'px; width: ' + width + 'px; cursor:text;"></div>');
         // mouse overlay for draw callbacks
-        _this.mouseOverlay = $('<div style="cursor:none; position: absolute; left:0px; top:0; height: 100%; width: 100%;"></div>');
+        _this.mouseOverlay = $('<div style="cursor:none; position: absolute; left:0px; top:0; height: ' + height + 'px; width: ' + width + 'px;"></div>');
 
         $(whiteboardContainer).append(_this.backgroundGrid)
             .append(_this.imgContainer)
@@ -71,35 +101,43 @@ var whiteboard = {
             .append(_this.textContainer)
             .append(_this.mouseOverlay);
         this.canvas = $("#whiteboardCanvas")[0];
-        this.canvas.width = $(window).width();
-        this.canvas.height = $(window).height() * pages;
+        this.canvas.width = biggestWidth * pages;
+        this.canvas.height = biggestHeight * pages;
         this.ctx = this.canvas.getContext("2d");
         this.oldGCO = this.ctx.globalCompositeOperation;
 
         $(window).resize(function () { //Handle resize
             var dbCp = JSON.parse(JSON.stringify(_this.drawBuffer)); //Copy the buffer
-            _this.canvas.width = $(window).width();
-            _this.canvas.height = $(window).height() * pages; //Set new canvas height
+            _this.canvas.width = biggestWidth * pages;
+            _this.canvas.height = biggestHeight * pages; //Set new canvas height
             _this.drawBuffer = [];
             _this.loadData(dbCp); //draw old content in
         });
 
-        function handleMouseStart(e, isTouch) {
+
+        $(_this.mouseOverlay).on( "mousedown touchstart", function (e) {
             if (_this.imgDragActive || _this.drawFlag) {
                 return;
             }
 
-            if(isTouch)
+            var loc;
+            if(e.type === "touchstart")
             {
+                loc = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
+
                 if (e.touches.length > 1) {
                     _this.isMultiTouch = true;
                     return; // if more than one finger is touching the screen, dont draw
                 }
             }
+            else
+            {
+                loc = e;
+            }
 
             _this.drawFlag = true;
-            _this.prevX = (e.offsetX || e.pageX - $(e.target).offset().left) + 1;
-            _this.prevY = (e.offsetY || e.pageY - $(e.target).offset().top) + 1;
+            _this.prevX = (loc.offsetX || loc.pageX - $(e.target).offset().left) + 1;
+            _this.prevY = (loc.offsetY || loc.pageY - $(e.target).offset().top) + 1;
             if (!_this.prevX || !_this.prevY || (_this.prevX == 1 && _this.prevY == 1)) {
                 var touche = e.touches[0];
                 _this.prevX = touche.clientX - $(_this.mouseOverlay).offset().left + 1;
@@ -149,79 +187,71 @@ var whiteboard = {
                 _this.svgContainer.append(_this.svgCirle);
                 _this.startCoords = [_this.prevX, _this.prevY];
             }
-        }
-
-        $(_this.mouseOverlay).on( "touchstart", function (e) {
-            handleMouseStart(e, true);
         });
 
-        $(_this.mouseOverlay).on("mousedown", function (e) {
-            handleMouseStart(e, false);
-        });
 
-        function handleMouseMove(e, isTouch) {
-            if(isTouch)
+        _this.textContainer.on("mousemove touchmove", function (e) {
+            var loc;
+
+            if(e.type === "touchmove")
             {
+                loc = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
+
                 if (e.touches.length > 1) {
                     _this.isMultiTouch = true;
                     return; // if more than one finger is touching the screen, dont draw
                 }
             }
-
+            else
+            {
+                loc = e;
+            }
+            var currX = (loc.offsetX || loc.pageX - $(e.target).offset().left);
+            var currY = (loc.offsetY || loc.pageY - $(e.target).offset().top);
             e.preventDefault();
 
             if (_this.imgDragActive || !$(e.target).hasClass("textcontainer")) {
                 return;
             }
 
-            var currX = (e.offsetX || e.pageX - $(e.target).offset().left);
-            var currY = (e.offsetY || e.pageY - $(e.target).offset().top);
+            console.info("eoff: " + e.offsetY); console.info("else:" + (e.pageY - $(e.target).offset().top));
             _this.sendFunction({
                 "t": "cursor",
                 "event": "move",
                 "d": [currX, currY],
                 "username": _this.settings.username
             });
-        }
-
-        _this.textContainer.on("touchmove", function (e) {
-            handleMouseMove(e, true);
         });
 
-        _this.textContainer.on("mousemove", function (e) {
-            handleMouseMove(e, false);
+        _this.mouseOverlay.on("mousemove touchmove", function (e) {
+            _this.triggerMouseMove(e);
         });
 
-        function handleMouseMove2(e, isTouch) {
-            if(isTouch)
+        _this.mouseOverlay.on("mouseup touchend touchcancel", function (e) {
+
+            var isTouch = false;
+            var loc;
+
+            if(e.type === "touchend" || e.type === "touchcancel")
             {
-                if (e.touches.length > 1) {
-                    _this.isMultiTouch = true;
-                    return; // if more than one finger is touching the screen, dont draw
-                }
+                isTouch = true;
+                loc = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
+            }
+            else
+            {
+                loc = e;
             }
 
-            e.preventDefault();
-            _this.triggerMouseMove(e);
-        }
-
-        _this.mouseOverlay.on("touchmove", function (e) {
-            handleMouseMove2(e, true);
-        });
-        _this.mouseOverlay.on("mousemove", function (e) {
-            handleMouseMove2(e, false);
-        });
-
-        function handleMouseUp(e, isTouch) {
             if (_this.imgDragActive) {
                 return;
             }
             _this.drawFlag = false;
             _this.drawId++;
             _this.ctx.globalCompositeOperation = _this.oldGCO;
-            var currX = (e.offsetX || e.pageX - $(e.target).offset().left);
-            var currY = (e.offsetY || e.pageY - $(e.target).offset().top);
-
+            var currX = (loc.offsetX || loc.pageX - $(e.target).offset().left);
+            var currY = (loc.offsetY || loc.pageY - $(e.target).offset().top);
+            var els = loc.pageY - $(e.target).offset().top;
+            console.info("eoff: " + loc.offsetY); console.info("else: " + els);
             if (!currX || !currY) {
                 currX = _this.latestTouchCoods[0];
                 currY = _this.latestTouchCoods[1];
@@ -332,15 +362,7 @@ var whiteboard = {
                 imgDiv.draggable();
                 _this.svgContainer.find("rect").remove();
             }
-        }
-
-        _this.mouseOverlay.on("touchend touchcancel", function (e) {
-            handleMouseUp(e, true);
         });
-        _this.mouseOverlay.on("mouseup", function (e) {
-            handleMouseUp(e, false);
-        });
-
         _this.mouseOverlay.on("mouseout", function (e) {
             _this.triggerMouseOut();
         });
@@ -359,6 +381,7 @@ var whiteboard = {
             _this.addTextBox(_this.drawcolor, fontsize, currX, currY, txId, true);
         });
     },
+
     getRoundedAngles: function (currX, currY) { //For drawing lines at 0,45,90° ....
         var _this = this;
         var x = currX - _this.startCoords[0];
@@ -381,17 +404,44 @@ var whiteboard = {
         return { "x": currX, "y": currY };
     },
     triggerMouseMove: function (e) {
+
         var _this = this;
+        var loc;
+
+        if(e.type === "touchmove")
+        {
+            loc = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
+            if (e.touches.length > 1) {
+                _this.isMultiTouch = true;
+                return; // if more than one finger is touching the screen, dont draw
+            }
+        }
+        else
+        {
+            loc = e;
+        }
+
+        e.preventDefault();
+
         if (_this.imgDragActive) {
             return;
         }
-        var currX = e.currX || (e.offsetX || e.pageX - $(e.target).offset().left);
-        var currY = e.currY || (e.offsetY || e.pageY - $(e.target).offset().top);
+
+        var currX = loc.offsetX || loc.pageX - $(e.target).offset().left;
+        var currY = loc.offsetY || loc.pageY - $(e.target).offset().top;
+
+        /*console.log("curr y:" + loc.currY);
+        console.log("offset y:" + loc.offsetY);
+        console.log("page y:" + loc.pageY);
+
+        console.log("current y: " + currY);*/
+
         window.requestAnimationFrame(function () {
             if ((!currX || !currY) && e.touches && e.touches[0]) {
                 var touche = e.touches[0];
                 currX = touche.clientX - $(_this.mouseOverlay).offset().left;
                 currY = touche.clientY - $(_this.mouseOverlay).offset().top;
+                //console.log("current y new: " + currY);
             }
             _this.latestTouchCoods = [currX, currY];
 
@@ -1003,6 +1053,11 @@ var whiteboard = {
         if (["line", "pen", "rect", "circle", "eraser", "addImgBG", "recSelect", "eraseRec", "addTextBox", "setTextboxText", "removeTextbox", "setTextboxPosition", "setTextboxFontSize", "setTextboxFontColor"].includes(tool)) {
             _this.drawBuffer.push(content);
         }
+        /*if(["refreshEveryoneScreenSize"].includes(tool)) {
+            console.info("refreshing size: " + biggestWidth + ", " + biggestHeight);
+            _this.canvas.width = biggestWidth * pages;
+            _this.canvas.height = biggestHeight * pages;
+        }*/
     },
     refreshCursorAppearance() { //Set cursor depending on current active tool
         var _this = this;
