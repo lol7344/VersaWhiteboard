@@ -214,7 +214,7 @@ var whiteboard = {
                 return;
             }
 
-            console.info("eoff: " + e.offsetY); console.info("else:" + (e.pageY - $(e.target).offset().top));
+            //console.info("eoff: " + e.offsetY); console.info("else:" + (e.pageY - $(e.target).offset().top));
             _this.sendFunction({
                 "t": "cursor",
                 "event": "move",
