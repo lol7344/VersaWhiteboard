@@ -59,3 +59,6 @@ typings/
 
 /public/uploads
 /package-lock.json
+
+# WebStorm config files
+/.idea/
