@@ -38,11 +38,8 @@
 </head>
 
 <body>
-	<!---Whiteboard container -!-->
-	<div id="whiteboardContainer"></div>
-
 	<!---Toolbar -!-->
-	<div id="toolbar" style="position: absolute; top: 10px; left: 10px;">
+	<div id="toolbar" style="position: -webkit-sticky; position: sticky; top: 10px; left: 10px; z-index: 1;">
 		<div class="btn-group">
 			<button id="whiteboardTrashBtn" title="Clear the whiteboard" type="button" class="whiteboardBtn">
 				<i class="fa fa-trash"></i>
@@ -158,6 +155,11 @@
 				<i id="maxBtn" style="position:relative; left:-5px; display: none;" class="fas fa-angle-right"></i>
 			</button>
 		</div>
+	</div>
+		
+	<!---Whiteboard container -!-->
+	<div id="whiteboardContainer" style="z-index: 0;"></div>
+		
 </body>
 
 </html>
